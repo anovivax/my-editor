@@ -23,7 +23,7 @@
             font-family: var(--font-sans-serif); background-color: var(--bg-primary);
             color: var(--text-primary); padding: 2rem; display: flex; justify-content: center;
             transition: background-color var(--transition-speed), color var(--transition-speed);
-            padding-bottom: 80px; /* เพิ่มพื้นที่ด้านล่างไม่ให้ข้อความโดนป้ายบัง */
+            padding-bottom: 90px; /* เพิ่มพื้นที่ด้านล่างไม่ให้ข้อความโดนป้ายบัง */
         }
         .app-container {
             width: 100%; max-width: 1200px; background-color: var(--surface-primary);
@@ -88,7 +88,7 @@
         body.editor-view .editor-only { display: inline-flex; }
         body.selector-view .selector-only { display: inline-flex; }
 
-        /* ⭐ Floating Mode Indicator สำหรับ iPad/Mobile ⭐ */
+        /* ⭐ Floating Mode Indicator (Clickable version) ⭐ */
         #floating-indicator {
             position: fixed;
             bottom: 25px;
@@ -101,8 +101,14 @@
             font-size: 16px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
             z-index: 1000;
-            pointer-events: none; /* ทำให้กดทะลุป้ายไปโดนปุ่มด้านล่างได้ */
-            transition: background-color 0.3s ease, opacity 0.3s ease;
+            cursor: pointer; /* เมาส์เปลี่ยนเป็นรูปมือ */
+            pointer-events: auto; /* เปิดให้กดได้แล้ว */
+            user-select: none; /* ห้ามคลุมดำข้อความบนปุ่ม */
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+        /* เอฟเฟกต์เวลานิ้วจิ้ม หรือเมาส์คลิก */
+        #floating-indicator:active {
+            transform: translateX(-50%) scale(0.93);
         }
         #floating-indicator.ind-edit { background-color: var(--purple); }
         #floating-indicator.ind-delete { background-color: var(--red); }
@@ -142,8 +148,8 @@
     </div>
 </div>
 
-<!-- ⭐ ป้ายสถานะแบบลอยตัว ⭐ -->
-<div id="floating-indicator" class="ind-edit">✏️ โหมดแก้ไข (แตะเพื่อพิมพ์)</div>
+<!-- ⭐ ป้ายสถานะแบบลอยตัว (คลิกได้แล้ว) ⭐ -->
+<div id="floating-indicator" class="ind-edit" title="คลิกเพื่อสลับโหมด">✏️ โหมดแก้ไข (กดเพื่อสลับโหมด)</div>
 
 <script>
     const D = document;
@@ -156,11 +162,11 @@
     const toggleModeBtn = getEl('toggle-mode-btn');
     const switchViewBtn = getEl('switch-view-btn');
     const modeDescription = getEl('mode-description');
-    const floatingIndicator = getEl('floating-indicator'); // ตัวแปรคุมป้ายลอยตัว
+    const floatingIndicator = getEl('floating-indicator');
 
     let lastActiveRow = null;
     let currentEditMode = 'edit';
-    let currentView = 'editor'; // 'editor' or 'selector'
+    let currentView = 'editor';
 
     // --- Core Data Functions ---
     const getEditorOutputAsText = () => {
@@ -288,9 +294,8 @@
             switchViewBtn.textContent = 'สลับกลับโหมดแก้ไข';
             modeDescription.textContent = 'คลิกที่บล็อกเพื่อเลือก/ยกเลิก จากนั้นใช้ปุ่มด้านล่างเพื่อคัดลอก';
 
-            // เปลี่ยนป้ายลอยตัวเป็นสีเขียว
             floatingIndicator.className = 'ind-selector';
-            floatingIndicator.textContent = '✅ โหมดเลือก (แตะเพื่อจับคู่)';
+            floatingIndicator.textContent = '✅ โหมดเลือก (แตะเพื่อกลับโหมดแก้ไข)';
 
             const editorText = getEditorOutputAsText();
             const transformedText = editorText.split('\n').map(line => 
@@ -309,10 +314,9 @@
             switchViewBtn.textContent = 'สลับไปโหมดเลือก';
             modeDescription.innerHTML = '<b>โหมดแก้ไข</b> | กด <b>F2</b> เพื่อสลับโหมด | กด <b>Ctrl+Z</b> เพื่อย้อนกลับ';
             
-            // คืนค่าป้ายลอยตัวตามสถานะ Edit/Delete ปัจจุบัน
             const isDelete = currentEditMode === 'delete';
             floatingIndicator.className = isDelete ? 'ind-delete' : 'ind-edit';
-            floatingIndicator.textContent = isDelete ? '🗑️ โหมดลบ (แตะเพื่อลบ)' : '✏️ โหมดแก้ไข (แตะเพื่อพิมพ์)';
+            floatingIndicator.textContent = isDelete ? '🗑️ โหมดลบ (กดเพื่อสลับโหมด)' : '✏️ โหมดแก้ไข (กดเพื่อสลับโหมด)';
 
             renderEditorView();
         }
@@ -368,7 +372,7 @@
     };
 
     toggleModeBtn.onclick = () => {
-        const isDelete = currentEditMode === 'delete'; // ถ้าสถานะเก่าคือ delete แปลว่ากำลังจะเปลี่ยนเป็น edit
+        const isDelete = currentEditMode === 'delete';
         currentEditMode = isDelete ? 'edit' : 'delete';
         bodyEl.classList.toggle('delete-mode', !isDelete);
         bodyEl.classList.toggle('edit-mode', isDelete);
@@ -376,9 +380,17 @@
         toggleModeBtn.textContent = isDelete ? 'โหมดแก้ไข (F2)' : 'โหมดลบ (F2)';
         toggleModeBtn.className = isDelete ? 'mode-edit editor-only' : 'mode-delete editor-only';
 
-        // ⭐ เปลี่ยนสีและข้อความของป้ายลอยตัว ⭐
         floatingIndicator.className = isDelete ? 'ind-edit' : 'ind-delete';
-        floatingIndicator.textContent = isDelete ? '✏️ โหมดแก้ไข (แตะเพื่อพิมพ์)' : '🗑️ โหมดลบ (แตะเพื่อลบ)';
+        floatingIndicator.textContent = isDelete ? '✏️ โหมดแก้ไข (กดเพื่อสลับโหมด)' : '🗑️ โหมดลบ (กดเพื่อสลับโหมด)';
+    };
+
+    // ⭐ ระบบคลิกป้ายลอยตัวเพื่อสั่งงานแทนปุ่มด้านบน ⭐
+    floatingIndicator.onclick = () => {
+        if (currentView === 'editor') {
+            toggleModeBtn.click(); // สลับโหมด แก้ไข ↔ ลบ
+        } else {
+            switchViewBtn.click(); // ออกจากโหมดเลือก กลับไปหน้าแก้ไข
+        }
     };
 
     getEl('theme-toggle-btn').onclick = () => {
