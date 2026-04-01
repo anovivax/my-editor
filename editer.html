@@ -23,7 +23,7 @@
             font-family: var(--font-sans-serif); background-color: var(--bg-primary);
             color: var(--text-primary); padding: 2rem; display: flex; justify-content: center;
             transition: background-color var(--transition-speed), color var(--transition-speed);
-            padding-bottom: 90px; /* เพิ่มพื้นที่ด้านล่างไม่ให้ข้อความโดนป้ายบัง */
+            padding-bottom: 90px;
         }
         .app-container {
             width: 100%; max-width: 1200px; background-color: var(--surface-primary);
@@ -39,7 +39,6 @@
         .button-group { display: flex; flex-wrap: wrap; gap: 0.75rem; }
         .button-group.bottom-buttons { margin-top: 2rem; }
         
-        /* Buttons */
         button { cursor: pointer; border: none; border-radius: var(--border-radius); transition: all 0.15s ease-in-out; font-weight: 500; padding: 0.65rem 1.25rem; font-size: 16px; color: #ffffff; }
         button:hover { transform: translateY(-2px); }
         #import-btn { background-color: var(--secondary); }
@@ -53,7 +52,6 @@
         .copy-selected-btn { background-color: var(--blue); }
         .copy-unselected-btn { background-color: var(--purple); }
 
-        /* Theme Toggle */
         #theme-toggle-btn { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); width: 42px; height: 42px; padding: 0; display:flex; align-items:center; justify-content:center; }
         #theme-toggle-btn:hover { background-color: var(--bg-primary); }
         #theme-toggle-btn svg { width: 18px; height: 18px; }
@@ -63,64 +61,57 @@
         
         #output { font-family: 'Leelawadee UI', 'Tahoma', 'Microsoft YaHei', sans-serif; }
 
-        /* --- Editor View Styles --- */
-        body.editor-view .character-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background-color: var(--surface-primary); border-radius: var(--border-radius); border: 1px solid var(--border-color); }
+        body.editor-view .character-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background-color: var(--surface-primary); border-radius: var(--border-radius); border: 1px solid var(--border-color); min-height: 40px; }
         body.editor-view .row-undo-btn { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); width: 38px; height: 38px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; }
         body.editor-view .row-undo-btn:hover:not(:disabled) { background-color: var(--bg-primary); }
         body.editor-view .row-undo-btn:disabled { color: var(--border-color); cursor: not-allowed; }
         body.editor-view .data-block { background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 0.5rem 0.75rem; font-size: 16px; user-select: none; transition: background-color 0.2s, border-color 0.2s, color 0.2s; }
-        body.editor-view.delete-mode .data-block:hover { background-color: #fff1f2; border-color: var(--red); color: var(--red); cursor: pointer; }
+        
+        /* --- ตั้งค่าสี Hover ในโหมดลบ --- */
+        /* บล็อกทั่วไป (บล็อกที่ 2 เป็นต้นไป) เป็นสีเขียว (แปลว่าคลิกเพื่อเก็บไว้) */
+        body.editor-view.delete-mode .data-block:hover { background-color: #d1e7dd; border-color: var(--green); color: var(--green); cursor: pointer; }
+        
+        /* บล็อกแรกสุด เป็นสีแดง (แปลว่าคลิกเพื่อลบทิ้งทั้งบรรทัด) */
+        body.editor-view.delete-mode .character-row .data-block:first-of-type:hover { background-color: #fff1f2; border-color: var(--red); color: var(--red); }
+        
+        /* โหมดแก้ไขปกติ */
         body.editor-view.edit-mode .data-block:hover { background-color: #eef2ff; border-color: var(--blue); color: var(--blue); cursor: pointer; }
         body.editor-view .data-block[contenteditable="true"] { outline: 2px solid var(--blue); background-color: #ffffff; }
-        body.dark-mode.editor-view.delete-mode .data-block:hover { background-color: #3c1f21; border-color: #f98089; color: #f98089; }
+        
+        /* Dark mode */
+        body.dark-mode.editor-view.delete-mode .data-block:hover { background-color: #143325; border-color: #75b798; color: #75b798; }
+        body.dark-mode.editor-view.delete-mode .character-row .data-block:first-of-type:hover { background-color: #3c1f21; border-color: #f98089; color: #f98089; }
         body.dark-mode.editor-view.edit-mode .data-block:hover { background-color: #212c4b; border-color: #8ab4f8; color: #8ab4f8; }
         body.dark-mode.editor-view .data-block[contenteditable="true"] { outline: 2px solid #8ab4f8; background-color: var(--bg-primary); }
 
-        /* --- Selector View Styles --- */
         body.selector-view #output { display: flex; flex-direction: column; gap: 0.5rem; }
         body.selector-view .data-block { background-color: var(--surface-primary); border: 2px solid var(--border-color); border-radius: var(--border-radius); padding: 0.75rem 1rem; font-size: 16px; user-select: none; transition: all 0.2s ease-in-out; cursor: pointer; }
         body.selector-view .data-block:hover { border-color: var(--border-color-hover); }
         body.selector-view .data-block.selected { border-color: var(--blue); background-color: #e7f1ff; color: #0058e0; }
         body.dark-mode.selector-view .data-block.selected { border-color: #8ab4f8; background-color: #283347; color: #bdceff; }
 
-        /* Visibility control */
         .editor-only, .selector-only { display: none; }
         body.editor-view .editor-only { display: inline-flex; }
         body.selector-view .selector-only { display: inline-flex; }
 
-        /* ⭐ Floating Mode Indicator (Clickable version) ⭐ */
         #floating-indicator {
-            position: fixed;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 24px;
-            border-radius: 30px;
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-            z-index: 1000;
-            cursor: pointer; /* เมาส์เปลี่ยนเป็นรูปมือ */
-            pointer-events: auto; /* เปิดให้กดได้แล้ว */
-            user-select: none; /* ห้ามคลุมดำข้อความบนปุ่ม */
-            transition: background-color 0.3s ease, transform 0.1s ease;
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            padding: 12px 24px; border-radius: 30px; color: white; font-weight: bold; font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25); z-index: 1000; cursor: pointer; pointer-events: auto;
+            user-select: none; transition: background-color 0.3s ease, transform 0.1s ease;
         }
-        /* เอฟเฟกต์เวลานิ้วจิ้ม หรือเมาส์คลิก */
-        #floating-indicator:active {
-            transform: translateX(-50%) scale(0.93);
-        }
+        #floating-indicator:active { transform: translateX(-50%) scale(0.93); }
         #floating-indicator.ind-edit { background-color: var(--purple); }
         #floating-indicator.ind-delete { background-color: var(--red); }
         #floating-indicator.ind-selector { background-color: var(--green); }
     </style>
 </head>
-<body class="editor-view edit-mode">
+<body class="editor-view delete-mode">
 <div class="app-container">
     <div class="header-group">
         <div>
             <h1>เครื่องมือจัดการข้อมูล</h1>
-            <p id="mode-description"><b>โหมดแก้ไข</b> | กด <b>F2</b> เพื่อสลับโหมด | กด <b>Ctrl+Z</b> เพื่อย้อนกลับ</p>
+            <p id="mode-description"><b>โหมดลบ</b> | คลิกบล็อกหลังเพื่อ <b>เก็บไว้</b> | คลิกบล็อกแรกเพื่อ <b>ลบทั้งบรรทัด</b> | กด <b>Ctrl+Z</b> เพื่อย้อนกลับ</p>
         </div>
         <button id="theme-toggle-btn" title="สลับธีม"><svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
     </div>
@@ -129,27 +120,22 @@
         <button id="import-btn">นำเข้า .txt</button><input type="file" id="file-importer" accept=".txt" style="display:none;">
         <button id="generate-btn">สร้างข้อมูล</button>
         <button id="switch-view-btn">สลับไปโหมดเลือก</button>
-        <!-- Editor Buttons -->
         <button class="save-btn editor-only">บันทึกเป็น .txt</button>
         <button class="copy-btn editor-only">คัดลอกทั้งหมด</button>
-        <button id="toggle-mode-btn" class="mode-edit editor-only">โหมดแก้ไข (F2)</button>
-        <!-- Selector Buttons -->
+        <button id="toggle-mode-btn" class="mode-delete editor-only">โหมดลบ (F2)</button>
         <button class="copy-selected-btn selector-only">คัดลอกที่เลือก</button>
         <button class="copy-unselected-btn selector-only">คัดลอกที่ไม่ได้เลือก</button>
     </div>
     <hr><h2>ผลลัพธ์</h2><div id="output"></div>
     <hr><div class="button-group bottom-buttons">
-        <!-- Editor Bottom Buttons -->
         <button class="save-btn editor-only">บันทึกเป็น .txt</button>
         <button class="copy-btn editor-only">คัดลอกทั้งหมด</button>
-        <!-- Selector Bottom Buttons -->
         <button class="copy-selected-btn selector-only">คัดลอกที่เลือก</button>
         <button class="copy-unselected-btn selector-only">คัดลอกที่ไม่ได้เลือก</button>
     </div>
 </div>
 
-<!-- ⭐ ป้ายสถานะแบบลอยตัว (คลิกได้แล้ว) ⭐ -->
-<div id="floating-indicator" class="ind-edit" title="คลิกเพื่อสลับโหมด">✏️ โหมดแก้ไข (กดเพื่อสลับโหมด)</div>
+<div id="floating-indicator" class="ind-delete" title="คลิกเพื่อสลับโหมด">🗑️ โหมดลบ (คลิกเพื่อสลับโหมด)</div>
 
 <script>
     const D = document;
@@ -165,10 +151,9 @@
     const floatingIndicator = getEl('floating-indicator');
 
     let lastActiveRow = null;
-    let currentEditMode = 'edit';
+    let currentEditMode = 'delete'; 
     let currentView = 'editor';
 
-    // --- Core Data Functions ---
     const getEditorOutputAsText = () => {
         return Array.from(getAll('.character-row')).map(row => {
             const parts = Array.from(row.querySelectorAll('.data-block')).map(b => b.textContent);
@@ -177,7 +162,6 @@
         }).filter(line => line !== null && line.trim() !== '').join('\n');
     };
 
-    // --- View Rendering ---
     const renderEditorView = () => {
         outputDiv.innerHTML = '';
         lastActiveRow = null;
@@ -189,7 +173,7 @@
             
             const undoBtn = D.createElement('button');
             undoBtn.className = 'row-undo-btn';
-            undoBtn.title = 'ย้อนกลับการลบล่าสุด (Ctrl+Z)';
+            undoBtn.title = 'ย้อนกลับ (Ctrl+Z)';
             undoBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/></svg>`;
             undoBtn.onclick = () => performUndo(row);
             row.appendChild(undoBtn);
@@ -221,7 +205,6 @@
         });
     };
     
-    // --- Block Creation ---
     const createEditorBlock = (text, row) => {
         const block = D.createElement('div');
         block.className = 'data-block';
@@ -230,14 +213,39 @@
         return block;
     };
     
-    // --- Editor-Specific Handlers ---
     const handleBlockClick = (block, row) => {
         if (block.isEditing) return;
         lastActiveRow = row;
+        
         if (currentEditMode === 'delete') {
-            row.undoStack.push({ element: block, parent: block.parentNode, nextSibling: block.nextSibling });
-            block.remove();
-            updateUndoButton(row);
+            const allBlocks = Array.from(row.querySelectorAll('.data-block'));
+            const firstBlock = allBlocks[0];
+            
+            let removedData = [];
+
+            if (block === firstBlock) {
+                // ถ้าคลิก "บล็อกแรก" -> ลบทิ้งทั้งหมดในบรรทัดนี้
+                for (let i = allBlocks.length - 1; i >= 0; i--) {
+                    const b = allBlocks[i];
+                    removedData.push({ element: b, nextSibling: b.nextSibling });
+                    b.remove();
+                }
+            } else {
+                // ถ้าคลิก "บล็อกอื่น" -> ลบตัวอื่น ยกเว้นบล็อกแรกและตัวที่คลิก
+                for (let i = allBlocks.length - 1; i >= 0; i--) {
+                    const b = allBlocks[i];
+                    if (b !== firstBlock && b !== block) {
+                        removedData.push({ element: b, nextSibling: b.nextSibling });
+                        b.remove();
+                    }
+                }
+            }
+
+            // เก็บประวัติการลบ เพื่อให้ใช้ Undo (Ctrl+Z) ได้
+            if (removedData.length > 0) {
+                row.undoStack.push(removedData);
+                updateUndoButton(row);
+            }
         } else {
             makeBlockEditable(block);
         }
@@ -261,10 +269,17 @@
         };
     };
 
+    // ระบบ Undo
     const performUndo = (row) => {
         if (!row || !row.undoStack || row.undoStack.length === 0) return;
         const lastAction = row.undoStack.pop();
-        lastAction.parent.insertBefore(lastAction.element, lastAction.nextSibling);
+
+        if (Array.isArray(lastAction)) {
+            // คืนค่าบล็อกทั้งหมดที่เพิ่งลบไป
+            lastAction.forEach(action => {
+                row.insertBefore(action.element, action.nextSibling);
+            });
+        }
         updateUndoButton(row);
     };
     
@@ -273,7 +288,6 @@
         if (undoBtn) undoBtn.disabled = row.undoStack.length === 0;
     };
     
-    // --- Universal Functions ---
     const copyTextToClipboard = (text, buttons) => {
         if (!text) { alert('ไม่มีข้อมูลให้คัดลอก!'); return; }
         navigator.clipboard.writeText(text).then(() => {
@@ -285,17 +299,16 @@
         });
     };
 
-    // --- View Switching ---
     const switchView = () => {
         if (currentView === 'editor') {
             currentView = 'selector';
             bodyEl.classList.remove('editor-view');
             bodyEl.classList.add('selector-view');
-            switchViewBtn.textContent = 'สลับกลับโหมดแก้ไข';
+            switchViewBtn.textContent = 'สลับกลับโหมดจัดการ';
             modeDescription.textContent = 'คลิกที่บล็อกเพื่อเลือก/ยกเลิก จากนั้นใช้ปุ่มด้านล่างเพื่อคัดลอก';
 
             floatingIndicator.className = 'ind-selector';
-            floatingIndicator.textContent = '✅ โหมดเลือก (แตะเพื่อกลับโหมดแก้ไข)';
+            floatingIndicator.textContent = '✅ โหมดเลือก (แตะเพื่อกลับโหมดจัดการ)';
 
             const editorText = getEditorOutputAsText();
             const transformedText = editorText.split('\n').map(line => 
@@ -312,17 +325,17 @@
             bodyEl.classList.remove('selector-view');
             bodyEl.classList.add('editor-view');
             switchViewBtn.textContent = 'สลับไปโหมดเลือก';
-            modeDescription.innerHTML = '<b>โหมดแก้ไข</b> | กด <b>F2</b> เพื่อสลับโหมด | กด <b>Ctrl+Z</b> เพื่อย้อนกลับ';
             
             const isDelete = currentEditMode === 'delete';
+            modeDescription.innerHTML = isDelete ? '<b>โหมดลบ</b> | คลิกบล็อกหลังเพื่อ <b>เก็บไว้</b> | คลิกบล็อกแรกเพื่อ <b>ลบทั้งบรรทัด</b> | กด <b>Ctrl+Z</b> เพื่อย้อนกลับ' : '<b>โหมดแก้ไข</b> | คลิกเพื่อแก้ไขข้อความ | กด <b>F2</b> เพื่อสลับโหมด | กด <b>Ctrl+Z</b> เพื่อย้อนกลับ';
+            
             floatingIndicator.className = isDelete ? 'ind-delete' : 'ind-edit';
-            floatingIndicator.textContent = isDelete ? '🗑️ โหมดลบ (กดเพื่อสลับโหมด)' : '✏️ โหมดแก้ไข (กดเพื่อสลับโหมด)';
+            floatingIndicator.textContent = isDelete ? '🗑️ โหมดลบ (คลิกเพื่อสลับโหมด)' : '✏️ โหมดแก้ไข (คลิกเพื่อสลับโหมด)';
 
             renderEditorView();
         }
     };
     
-    // --- Initial Setup & Listeners ---
     getEl('generate-btn').onclick = () => {
         if (currentView === 'editor') {
             renderEditorView();
@@ -381,15 +394,15 @@
         toggleModeBtn.className = isDelete ? 'mode-edit editor-only' : 'mode-delete editor-only';
 
         floatingIndicator.className = isDelete ? 'ind-edit' : 'ind-delete';
-        floatingIndicator.textContent = isDelete ? '✏️ โหมดแก้ไข (กดเพื่อสลับโหมด)' : '🗑️ โหมดลบ (กดเพื่อสลับโหมด)';
+        floatingIndicator.textContent = isDelete ? '✏️ โหมดแก้ไข (คลิกเพื่อสลับโหมด)' : '🗑️ โหมดลบ (คลิกเพื่อสลับโหมด)';
+        modeDescription.innerHTML = isDelete ? '<b>โหมดแก้ไข</b> | คลิกเพื่อแก้ไขข้อความ | กด <b>F2</b> เพื่อสลับโหมด | กด <b>Ctrl+Z</b> เพื่อย้อนกลับ' : '<b>โหมดลบ</b> | คลิกบล็อกหลังเพื่อ <b>เก็บไว้</b> | คลิกบล็อกแรกเพื่อ <b>ลบทั้งบรรทัด</b> | กด <b>Ctrl+Z</b> เพื่อย้อนกลับ';
     };
 
-    // ⭐ ระบบคลิกป้ายลอยตัวเพื่อสั่งงานแทนปุ่มด้านบน ⭐
     floatingIndicator.onclick = () => {
         if (currentView === 'editor') {
-            toggleModeBtn.click(); // สลับโหมด แก้ไข ↔ ลบ
+            toggleModeBtn.click();
         } else {
-            switchViewBtn.click(); // ออกจากโหมดเลือก กลับไปหน้าแก้ไข
+            switchViewBtn.click();
         }
     };
 
