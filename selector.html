@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Character Block Selector (with Bottom Buttons)</title>
+    <style>
+        :root {
+            --bg-primary: #f8f9fa; --surface-primary: #ffffff;
+            --text-primary: #212529; --text-secondary: #6c757d;
+            --border-color: #dee2e6; --border-color-hover: #b8c2cc;
+            --blue: #0d6efd; --purple: #6f42c1; --green: #198754; --secondary: #6c757d;
+            --font-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --border-radius: 0.5rem;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        body.dark-mode {
+            --bg-primary: #121212; --surface-primary: #1e1e1e;
+            --text-primary: #e0e0e0; --text-secondary: #a0a0a0;
+            --border-color: #333333; --border-color-hover: #555555;
+        }
+        body {
+            font-family: var(--font-sans-serif); background-color: var(--bg-primary);
+            color: var(--text-primary); padding: 2rem; display: flex; justify-content: center;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .app-container {
+            width: 100%; max-width: 1200px; background-color: var(--surface-primary);
+            padding: 2rem; border-radius: 1rem; box-shadow: var(--box-shadow);
+            border: 1px solid var(--border-color);
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .header-group { display: flex; justify-content: space-between; align-items: start; }
+        h1 { margin-top: 0; }
+        p { color: var(--text-secondary); }
+        hr { border: 0; border-top: 1px solid var(--border-color); margin: 2rem 0; }
+        #input-area { width: 98%; height: 140px; padding: 0.75rem 1rem; border-radius: var(--border-radius); border: 1px solid var(--border-color); font-size: 16px; margin-bottom: 1.5rem; background-color: var(--bg-primary); color: var(--text-primary); }
+        
+        .button-group { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        /* NEW: Style for the bottom button group */
+        .button-group.bottom-buttons { margin-top: 2rem; }
+
+        button { cursor: pointer; border: none; border-radius: var(--border-radius); transition: all 0.15s ease-in-out; font-weight: 500; padding: 0.65rem 1.25rem; font-size: 16px; color: var(--white); }
+        button:hover { transform: translateY(-2px); }
+        #import-btn { background-color: var(--secondary); }
+        #generate-btn { background-color: var(--success); }
+        .copy-selected-btn { background-color: var(--blue); }
+        .copy-unselected-btn { background-color: var(--purple); }
+
+        #theme-toggle-btn { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); width: 42px; height: 42px; padding: 0; display:flex; align-items:center; justify-content:center; }
+        #theme-toggle-btn:hover { background-color: var(--bg-primary); }
+        .moon-icon { display: none; }
+        body.dark-mode .sun-icon { display: none; }
+        body.dark-mode .moon-icon { display: block; }
+        
+        #output { display: flex; flex-direction: column; gap: 0.5rem; font-family: 'Leelawadee UI', 'Tahoma', sans-serif; }
+        .data-block {
+            background-color: var(--surface-primary); border: 2px solid var(--border-color);
+            border-radius: var(--border-radius); padding: 0.75rem 1rem; font-size: 16px;
+            user-select: none; transition: all 0.2s ease-in-out; cursor: pointer;
+        }
+        .data-block:hover { border-color: var(--border-color-hover); }
+
+        .data-block.selected {
+            border-color: var(--blue);
+            background-color: #e7f1ff;
+            color: #0058e0;
+        }
+        body.dark-mode .data-block.selected {
+            border-color: #8ab4f8;
+            background-color: #283347;
+            color: #bdceff;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header-group">
+        <div>
+            <h1>เครื่องมือเลือกข้อมูล</h1>
+            <p>คลิกที่บล็อกเพื่อเลือก/ยกเลิก จากนั้นใช้ปุ่มด้านล่างเพื่อคัดลอก</p>
+        </div>
+        <button id="theme-toggle-btn" title="สลับธีม"><svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+    </div>
+    <textarea id="input-area" placeholder="วางข้อมูลที่นี่ (รูปแบบ: จีน = ไทย)"></textarea>
+    <div class="button-group">
+        <button id="import-btn">นำเข้า .txt</button><input type="file" id="file-importer" accept=".txt" style="display:none;">
+        <button id="generate-btn">สร้างบล็อก</button>
+        <button class="copy-selected-btn">คัดลอกที่เลือก</button>
+        <button class="copy-unselected-btn">คัดลอกที่ไม่ได้เลือก</button>
+    </div>
+    <hr><h2>ผลลัพธ์</h2><div id="output"></div>
+
+    <!-- NEW: Bottom button group added -->
+    <hr>
+    <div class="button-group bottom-buttons">
+        <button class="copy-selected-btn">คัดลอกที่เลือก</button>
+        <button class="copy-unselected-btn">คัดลอกที่ไม่ได้เลือก</button>
+    </div>
+</div>
+
+<script>
+    const D = document;
+    const getEl = (id) => D.getElementById(id);
+    const getAll = (selector) => D.querySelectorAll(selector);
+    const bodyEl = D.body;
+
+    // --- Main Functions ---
+    const render = () => {
+        getEl('output').innerHTML = '';
+        getEl('input-area').value.trim().split('\n').forEach(line => {
+            if (!line) return;
+            const block = D.createElement('div');
+            block.className = 'data-block';
+            block.textContent = line;
+            block.onclick = () => block.classList.toggle('selected');
+            getEl('output').appendChild(block);
+        });
+    };
+
+    const copyTextToClipboard = (selector, buttonClass) => {
+        const blocks = getAll(selector);
+        if (blocks.length === 0) {
+            alert('ไม่มีข้อมูลให้คัดลอก!');
+            return;
+        }
+        const textToCopy = Array.from(blocks).map(b => b.textContent).join('\n');
+        
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const buttons = getAll(`.${buttonClass}`);
+            const originalText = buttons[0].textContent;
+            buttons.forEach(b => b.textContent = 'คัดลอกแล้ว!');
+            setTimeout(() => buttons.forEach(b => b.textContent = originalText), 2000);
+        }).catch(err => {
+            console.error('Copy failed: ', err);
+            alert('ไม่สามารถคัดลอกได้');
+        });
+    };
+
+    // --- Initial Setup & Event Listeners ---
+    getEl('generate-btn').onclick = render;
+    getAll('.copy-selected-btn').forEach(btn => btn.onclick = () => copyTextToClipboard('.data-block.selected', 'copy-selected-btn'));
+    getAll('.copy-unselected-btn').forEach(btn => btn.onclick = () => copyTextToClipboard('.data-block:not(.selected)', 'copy-unselected-btn'));
+
+    getEl('import-btn').onclick = () => getEl('file-importer').click();
+    getEl('file-importer').onchange = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            getEl('input-area').value = e.target.result;
+            render();
+        };
+        reader.readAsText(file, 'UTF-8');
+        event.target.value = null;
+    };
+
+    getEl('theme-toggle-btn').onclick = () => {
+        bodyEl.classList.toggle('dark-mode');
+        localStorage.setItem('theme', bodyEl.classList.contains('dark-mode') ? 'dark' : 'light');
+    };
+
+    // Load saved theme
+    if (localStorage.getItem('theme') === 'dark') {
+        bodyEl.classList.add('dark-mode');
+    }
+</script>
+</body>
+</html>
