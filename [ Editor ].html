@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Character Block Editor & Selector</title>
+    <style>
+        :root {
+            --bg-primary: #f8f9fa; --surface-primary: #ffffff;
+            --text-primary: #212529; --text-secondary: #6c757d;
+            --border-color: #dee2e6; --border-color-hover: #b8c2cc;
+            --blue: #0d6efd; --purple: #6f42c1; --red: #dc3545; --green: #198754; --cyan: #0dcaf0; --secondary: #6c757d;
+            --font-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --border-radius: 0.5rem;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --transition-speed: 0.2s;
+        }
+        body.dark-mode {
+            --bg-primary: #121212; --surface-primary: #1e1e1e;
+            --text-primary: #e0e0e0; --text-secondary: #a0a0a0;
+            --border-color: #333333; --border-color-hover: #555555;
+        }
+        body {
+            font-family: var(--font-sans-serif); background-color: var(--bg-primary);
+            color: var(--text-primary); padding: 2rem; display: flex; justify-content: center;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+        .app-container {
+            width: 100%; max-width: 1200px; background-color: var(--surface-primary);
+            padding: 2rem; border-radius: 1rem; box-shadow: var(--box-shadow);
+            border: 1px solid var(--border-color);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+        .header-group { display: flex; justify-content: space-between; align-items: start; }
+        h1 { margin-top: 0; }
+        p { color: var(--text-secondary); }
+        hr { border: 0; border-top: 1px solid var(--border-color); margin: 2rem 0; }
+        #input-area { width: 98%; height: 140px; padding: 0.75rem 1rem; border-radius: var(--border-radius); border: 1px solid var(--border-color); font-size: 16px; margin-bottom: 1.5rem; background-color: var(--bg-primary); color: var(--text-primary); }
+        .button-group { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .button-group.bottom-buttons { margin-top: 2rem; }
+        
+        /* Buttons */
+        button { cursor: pointer; border: none; border-radius: var(--border-radius); transition: all 0.15s ease-in-out; font-weight: 500; padding: 0.65rem 1.25rem; font-size: 16px; color: #ffffff; }
+        button:hover { transform: translateY(-2px); }
+        #import-btn { background-color: var(--secondary); }
+        #generate-btn { background-color: var(--purple); }
+        #switch-view-btn { background-color: var(--green); }
+        .save-btn { background-color: var(--blue); }
+        .copy-btn { background-color: var(--cyan); color: #000; }
+        .copy-btn.copied { background-color: #20c997; color: #ffffff; }
+        #toggle-mode-btn.mode-delete { background-color: var(--red); }
+        #toggle-mode-btn.mode-edit { background-color: var(--purple); }
+        .copy-selected-btn { background-color: var(--blue); }
+        .copy-unselected-btn { background-color: var(--purple); }
+
+        /* Theme Toggle */
+        #theme-toggle-btn { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); width: 42px; height: 42px; padding: 0; display:flex; align-items:center; justify-content:center; }
+        #theme-toggle-btn:hover { background-color: var(--bg-primary); }
+        #theme-toggle-btn svg { width: 18px; height: 18px; }
+        .moon-icon { display: none; }
+        body.dark-mode .sun-icon { display: none; }
+        body.dark-mode .moon-icon { display: block; }
+        
+        #output { font-family: 'Leelawadee UI', 'Tahoma', 'Microsoft YaHei', sans-serif; }
+
+        /* --- Editor View Styles --- */
+        body.editor-view .character-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background-color: var(--surface-primary); border-radius: var(--border-radius); border: 1px solid var(--border-color); }
+        body.editor-view .row-undo-btn { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); width: 38px; height: 38px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex-shrink: 0; }
+        body.editor-view .row-undo-btn:hover:not(:disabled) { background-color: var(--bg-primary); }
+        body.editor-view .row-undo-btn:disabled { color: var(--border-color); cursor: not-allowed; }
+        body.editor-view .data-block { background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 0.5rem 0.75rem; font-size: 16px; user-select: none; transition: background-color 0.2s, border-color 0.2s, color 0.2s; }
+        body.editor-view.delete-mode .data-block:hover { background-color: #fff1f2; border-color: var(--red); color: var(--red); cursor: pointer; }
+        body.editor-view.edit-mode .data-block:hover { background-color: #eef2ff; border-color: var(--blue); color: var(--blue); cursor: pointer; }
+        body.editor-view .data-block[contenteditable="true"] { outline: 2px solid var(--blue); background-color: #ffffff; }
+        body.dark-mode.editor-view.delete-mode .data-block:hover { background-color: #3c1f21; border-color: #f98089; color: #f98089; }
+        body.dark-mode.editor-view.edit-mode .data-block:hover { background-color: #212c4b; border-color: #8ab4f8; color: #8ab4f8; }
+        body.dark-mode.editor-view .data-block[contenteditable="true"] { outline: 2px solid #8ab4f8; background-color: var(--bg-primary); }
+
+        /* --- Selector View Styles --- */
+        body.selector-view #output { display: flex; flex-direction: column; gap: 0.5rem; }
+        body.selector-view .data-block { background-color: var(--surface-primary); border: 2px solid var(--border-color); border-radius: var(--border-radius); padding: 0.75rem 1rem; font-size: 16px; user-select: none; transition: all 0.2s ease-in-out; cursor: pointer; }
+        body.selector-view .data-block:hover { border-color: var(--border-color-hover); }
+        body.selector-view .data-block.selected { border-color: var(--blue); background-color: #e7f1ff; color: #0058e0; }
+        body.dark-mode.selector-view .data-block.selected { border-color: #8ab4f8; background-color: #283347; color: #bdceff; }
+
+        /* Visibility control */
+        .editor-only, .selector-only { display: none; }
+        body.editor-view .editor-only { display: inline-flex; }
+        body.selector-view .selector-only { display: inline-flex; }
+    </style>
+</head>
+<body class="editor-view edit-mode">
+<div class="app-container">
+    <div class="header-group">
+        <div>
+            <h1>เครื่องมือจัดการข้อมูล</h1>
+            <p id="mode-description"><b>โหมดแก้ไข</b> | กด <b>F2</b> เพื่อสลับโหมด | กด <b>Ctrl+Z</b> เพื่อย้อนกลับ</p>
+        </div>
+        <button id="theme-toggle-btn" title="สลับธีม"><svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+    </div>
+    <textarea id="input-area" placeholder="วางข้อมูลหลายบรรทัดที่นี่ หรือนำเข้าไฟล์..."></textarea>
+    <div class="button-group">
+        <button id="import-btn">นำเข้า .txt</button><input type="file" id="file-importer" accept=".txt" style="display:none;">
+        <button id="generate-btn">สร้างข้อมูล</button>
+        <button id="switch-view-btn">สลับไปโหมดเลือก</button>
+        <!-- Editor Buttons -->
+        <button class="save-btn editor-only">บันทึกเป็น .txt</button>
+        <button class="copy-btn editor-only">คัดลอกทั้งหมด</button>
+        <button id="toggle-mode-btn" class="mode-edit editor-only">โหมดแก้ไข (F2)</button>
+        <!-- Selector Buttons -->
+        <button class="copy-selected-btn selector-only">คัดลอกที่เลือก</button>
+        <button class="copy-unselected-btn selector-only">คัดลอกที่ไม่ได้เลือก</button>
+    </div>
+    <hr><h2>ผลลัพธ์</h2><div id="output"></div>
+    <hr><div class="button-group bottom-buttons">
+        <!-- Editor Bottom Buttons -->
+        <button class="save-btn editor-only">บันทึกเป็น .txt</button>
+        <button class="copy-btn editor-only">คัดลอกทั้งหมด</button>
+        <!-- Selector Bottom Buttons -->
+        <button class="copy-selected-btn selector-only">คัดลอกที่เลือก</button>
+        <button class="copy-unselected-btn selector-only">คัดลอกที่ไม่ได้เลือก</button>
+    </div>
+</div>
+
+<script>
+    const D = document;
+    const bodyEl = D.body;
+    const getEl = (id) => D.getElementById(id);
+    const getAll = (selector) => D.querySelectorAll(selector);
+
+    const inputArea = getEl('input-area');
+    const outputDiv = getEl('output');
+    const toggleModeBtn = getEl('toggle-mode-btn');
+    const switchViewBtn = getEl('switch-view-btn');
+    const modeDescription = getEl('mode-description');
+
+    let lastActiveRow = null;
+    let currentEditMode = 'edit';
+    let currentView = 'editor'; // 'editor' or 'selector'
+
+    // --- Core Data Functions ---
+    const getEditorOutputAsText = () => {
+        return Array.from(getAll('.character-row')).map(row => {
+            const parts = Array.from(row.querySelectorAll('.data-block')).map(b => b.textContent);
+            if (parts.length === 0) return null;
+            return parts.join(' | ');
+        }).filter(line => line !== null && line.trim() !== '').join('\n');
+    };
+
+    // --- View Rendering ---
+    const renderEditorView = () => {
+        outputDiv.innerHTML = '';
+        lastActiveRow = null;
+        inputArea.value.trim().split('\n').forEach(line => {
+            if (!line) return;
+            const row = D.createElement('div');
+            row.className = 'character-row';
+            row.undoStack = [];
+            
+            const undoBtn = D.createElement('button');
+            undoBtn.className = 'row-undo-btn';
+            undoBtn.title = 'ย้อนกลับการลบล่าสุด (Ctrl+Z)';
+            undoBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/></svg>`;
+            undoBtn.onclick = () => performUndo(row);
+            row.appendChild(undoBtn);
+
+            const initialParts = line.split(/\||\//).flatMap(part => {
+                const pinyinMatch = part.trim().match(/\s*\(([^)]+)\)$/);
+                if (pinyinMatch) {
+                    const textBefore = part.trim().replace(pinyinMatch[0], '');
+                    return textBefore ? [textBefore, pinyinMatch[0].trim()] : [pinyinMatch[0].trim()];
+                }
+                return [part.trim()];
+            });
+
+            initialParts.forEach(text => text && row.appendChild(createEditorBlock(text, row)));
+            if (row.children.length > 1) outputDiv.appendChild(row);
+            updateUndoButton(row);
+        });
+    };
+
+    const renderSelectorView = (sourceText) => {
+        outputDiv.innerHTML = '';
+        sourceText.split('\n').forEach(line => {
+            if (!line) return;
+            const block = D.createElement('div');
+            block.className = 'data-block';
+            block.textContent = line;
+            block.onclick = () => block.classList.toggle('selected');
+            outputDiv.appendChild(block);
+        });
+    };
+    
+    // --- Block Creation ---
+    const createEditorBlock = (text, row) => {
+        const block = D.createElement('div');
+        block.className = 'data-block';
+        block.textContent = text;
+        block.onclick = () => handleBlockClick(block, row);
+        return block;
+    };
+    
+    // --- Editor-Specific Handlers ---
+    const handleBlockClick = (block, row) => {
+        if (block.isEditing) return;
+        lastActiveRow = row;
+        if (currentEditMode === 'delete') {
+            row.undoStack.push({ element: block, parent: block.parentNode, nextSibling: block.nextSibling });
+            block.remove();
+            updateUndoButton(row);
+        } else {
+            makeBlockEditable(block);
+        }
+    };
+
+    const makeBlockEditable = (block) => {
+        block.isEditing = true;
+        const originalText = block.textContent;
+        block.setAttribute('contenteditable', true);
+        block.focus();
+        const finishEditing = (revert = false) => {
+            block.removeAttribute('contenteditable');
+            block.isEditing = false;
+            if (revert) block.textContent = originalText;
+            block.onblur = null; block.onkeydown = null;
+        };
+        block.onblur = () => finishEditing();
+        block.onkeydown = (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); finishEditing(); }
+            else if (e.key === 'Escape') finishEditing(true);
+        };
+    };
+
+    const performUndo = (row) => {
+        if (!row || !row.undoStack || row.undoStack.length === 0) return;
+        const lastAction = row.undoStack.pop();
+        lastAction.parent.insertBefore(lastAction.element, lastAction.nextSibling);
+        updateUndoButton(row);
+    };
+    
+    const updateUndoButton = (row) => {
+        const undoBtn = row.querySelector('.row-undo-btn');
+        if (undoBtn) undoBtn.disabled = row.undoStack.length === 0;
+    };
+    
+    // --- Universal Functions ---
+    const copyTextToClipboard = (text, buttons) => {
+        if (!text) { alert('ไม่มีข้อมูลให้คัดลอก!'); return; }
+        navigator.clipboard.writeText(text).then(() => {
+            const originalTexts = Array.from(buttons).map(b => b.textContent);
+            buttons.forEach(b => { b.textContent = 'คัดลอกแล้ว!'; b.classList.add('copied'); });
+            setTimeout(() => {
+                buttons.forEach((b, i) => { b.textContent = originalTexts[i]; b.classList.remove('copied'); });
+            }, 2000);
+        });
+    };
+
+    // --- View Switching ---
+    const switchView = () => {
+        if (currentView === 'editor') {
+            // ***** UPDATED LOGIC: AUTOMATIC CONVERSION *****
+            currentView = 'selector';
+            bodyEl.classList.remove('editor-view');
+            bodyEl.classList.add('selector-view');
+            switchViewBtn.textContent = 'สลับกลับโหมดแก้ไข';
+            modeDescription.textContent = 'คลิกที่บล็อกเพื่อเลือก/ยกเลิก จากนั้นใช้ปุ่มด้านล่างเพื่อคัดลอก';
+
+            // 1. Get current editor text
+            const editorText = getEditorOutputAsText();
+
+            // 2. Transform each line: replace the first pipe with an equals sign
+            const transformedText = editorText.split('\n').map(line => 
+                line.replace(/\s*\|\s*/, ' = ')
+            ).join('\n');
+            
+            // 3. Render selector view with the transformed text
+            renderSelectorView(transformedText);
+
+        } else {
+            const selectedText = Array.from(getAll('.data-block.selected'))
+                                    .map(b => b.textContent)
+                                    .join('\n');
+            inputArea.value = selectedText;
+            currentView = 'editor';
+            bodyEl.classList.remove('selector-view');
+            bodyEl.classList.add('editor-view');
+            switchViewBtn.textContent = 'สลับไปโหมดเลือก';
+            modeDescription.innerHTML = '<b>โหมดแก้ไข</b> | กด <b>F2</b> เพื่อสลับโหมด | กด <b>Ctrl+Z</b> เพื่อย้อนกลับ';
+            renderEditorView();
+        }
+    };
+    
+    // --- Initial Setup & Listeners ---
+    getEl('generate-btn').onclick = () => {
+        if (currentView === 'editor') {
+            renderEditorView();
+        } else {
+            renderSelectorView(inputArea.value.trim());
+        }
+    };
+    
+    switchViewBtn.onclick = switchView;
+
+    getAll('.save-btn').forEach(btn => btn.onclick = () => {
+        const text = getEditorOutputAsText(); if (!text) { alert('ไม่มีข้อมูลให้บันทึก!'); return; }
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const link = D.createElement('a'); link.href = URL.createObjectURL(blob);
+        link.download = 'edited_data.txt'; link.click();
+    });
+    
+    getAll('.copy-btn').forEach(btn => btn.onclick = () => {
+        const text = getEditorOutputAsText();
+        copyTextToClipboard(text, getAll('.copy-btn'));
+    });
+
+    getAll('.copy-selected-btn').forEach(btn => btn.onclick = () => {
+        const text = Array.from(getAll('.data-block.selected')).map(b => b.textContent).join('\n');
+        copyTextToClipboard(text, getAll('.copy-selected-btn'));
+    });
+
+    getAll('.copy-unselected-btn').forEach(btn => btn.onclick = () => {
+        const text = Array.from(getAll('.data-block:not(.selected)')).map(b => b.textContent).join('\n');
+        copyTextToClipboard(text, getAll('.copy-unselected-btn'));
+    });
+    
+    getEl('import-btn').onclick = () => getEl('file-importer').click();
+    getEl('file-importer').onchange = (event) => {
+        const file = event.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            inputArea.value = e.target.result;
+            if (currentView === 'editor') {
+                renderEditorView();
+            } else {
+                renderSelectorView(inputArea.value.trim());
+            }
+        };
+        reader.readAsText(file, 'UTF-8');
+        event.target.value = null;
+    };
+
+    toggleModeBtn.onclick = () => {
+        const isDelete = currentEditMode === 'delete';
+        currentEditMode = isDelete ? 'edit' : 'delete';
+        bodyEl.classList.toggle('delete-mode', !isDelete);
+        bodyEl.classList.toggle('edit-mode', isDelete);
+        toggleModeBtn.textContent = isDelete ? 'โหมดแก้ไข (F2)' : 'โหมดลบ (F2)';
+        toggleModeBtn.className = isDelete ? 'mode-edit editor-only' : 'mode-delete editor-only';
+    };
+
+    getEl('theme-toggle-btn').onclick = () => {
+        bodyEl.classList.toggle('dark-mode');
+        localStorage.setItem('theme', bodyEl.classList.contains('dark-mode') ? 'dark' : 'light');
+    };
+
+    D.onkeydown = (e) => {
+        if (currentView !== 'editor') return; 
+        const isTyping = D.activeElement.isContentEditable || ['INPUT', 'TEXTAREA'].includes(D.activeElement.tagName);
+        if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); performUndo(lastActiveRow); return; }
+        if (e.key === 'F2' && !(isTyping && D.activeElement.tagName !== 'BODY')) { e.preventDefault(); toggleModeBtn.click(); }
+    };
+
+    if (localStorage.getItem('theme') === 'dark') bodyEl.classList.add('dark-mode');
+</script>
+</body>
+</html>
