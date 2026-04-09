@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Text Editor สำหรับ iPad</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+            font-size: 20px;
+        }
+        .instruction {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        textarea {
+            flex-grow: 1;
+            width: 100%;
+            padding: 15px;
+            font-size: 18px; /* ป้องกัน iPad ซูมหน้าจอ */
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            resize: none;
+            box-sizing: border-box;
+            outline: none;
+            line-height: 1.6;
+        }
+        textarea:focus {
+            border-color: #007aff;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-copy { background-color: #007aff; }
+        .btn-copy:hover { background-color: #005bb5; }
+        .btn-clear { background-color: #ff3b30; }
+        .btn-clear:hover { background-color: #cc2922; }
+    </style>
+</head>
+<body>
+
+    <h2>📝 พื้นที่จัดการข้อความ (รองรับ Shift + Click)</h2>
+    <div class="instruction">
+        <b>วิธีใช้:</b> คลิกซ้าย 1 ครั้งที่จุดเริ่มต้น ➔ กดปุ่ม <b>Shift</b> ค้างไว้ ➔ คลิกซ้ายอีก 1 ครั้งที่จุดสิ้นสุด
+    </div>
+    
+    <textarea id="myTextArea" placeholder="พิมพ์หรือวางข้อความของคุณที่นี่..."></textarea>
+    
+    <div class="button-group">
+        <button class="btn-copy" onclick="copyText()">คัดลอกข้อความ</button>
+        <button class="btn-clear" onclick="clearText()">ลบทั้งหมด</button>
+    </div>
+
+    <script>
+        const textArea = document.getElementById("myTextArea");
+        let startIndex = null;
+
+        // ดักจับการคลิกเมาส์ใน Textarea
+        textArea.addEventListener('click', function(e) {
+            // หากไม่ได้กด Shift ให้จำตำแหน่งคลิกนี้เป็นจุดเริ่มต้น
+            if (!e.shiftKey) {
+                startIndex = this.selectionStart;
+            } 
+            // หากกด Shift ค้างไว้ แล้วคลิก
+            else {
+                if (startIndex !== null) {
+                    let endIndex = this.selectionStart;
+                    
+                    // คำนวณหาจุดเริ่มต้นและจุดสิ้นสุดที่แท้จริง (ป้องกันกรณีลากคลุมย้อนหลัง)
+                    let actualStart = Math.min(startIndex, endIndex);
+                    let actualEnd = Math.max(startIndex, endIndex);
+                    
+                    // สั่งให้ระบบคลุมดำข้อความตามตำแหน่งที่คำนวณได้ทันที
+                    this.setSelectionRange(actualStart, actualEnd);
+                }
+            }
+        });
+
+        // ฟังก์ชันคัดลอก
+        function copyText() {
+            document.execCommand("copy");
+            const copyBtn = document.querySelector('.btn-copy');
+            const originalText = copyBtn.innerText;
+            copyBtn.innerText = "คัดลอกแล้ว! ✔";
+            setTimeout(() => { copyBtn.innerText = originalText; }, 2000);
+        }
+
+        // ฟังก์ชันลบทั้งหมด
+        function clearText() {
+            if(confirm("ต้องการลบข้อความทั้งหมดใช่หรือไม่?")) {
+                textArea.value = "";
+                textArea.focus();
+                startIndex = null; // รีเซ็ตจุดเริ่มต้น
+            }
+        }
+    </script>
+
+</body>
+</html>
