@@ -68,10 +68,7 @@
         body.editor-view .data-block { background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 0.5rem 0.75rem; font-size: 16px; user-select: none; transition: background-color 0.2s, border-color 0.2s, color 0.2s; }
         
         /* --- ตั้งค่าสี Hover ในโหมดลบ --- */
-        /* บล็อกทั่วไป (บล็อกที่ 2 เป็นต้นไป) เป็นสีเขียว (แปลว่าคลิกเพื่อเก็บไว้) */
         body.editor-view.delete-mode .data-block:hover { background-color: #d1e7dd; border-color: var(--green); color: var(--green); cursor: pointer; }
-        
-        /* บล็อกแรกสุด เป็นสีแดง (แปลว่าคลิกเพื่อลบทิ้งทั้งบรรทัด) */
         body.editor-view.delete-mode .character-row .data-block:first-of-type:hover { background-color: #fff1f2; border-color: var(--red); color: var(--red); }
         
         /* โหมดแก้ไขปกติ */
@@ -154,11 +151,15 @@
     let currentEditMode = 'delete'; 
     let currentView = 'editor';
 
+    // 🌟 ระบบดึงข้อความออกไปใช้: คั่นตัวแรกด้วย = และตัวถัดไปด้วย |
     const getEditorOutputAsText = () => {
         return Array.from(getAll('.character-row')).map(row => {
             const parts = Array.from(row.querySelectorAll('.data-block')).map(b => b.textContent);
             if (parts.length === 0) return null;
-            return parts.join(' | ');
+            
+            const firstPart = parts.shift();
+            return parts.length > 0 ? `${firstPart} = ${parts.join(' | ')}` : firstPart;
+            
         }).filter(line => line !== null && line.trim() !== '').join('\n');
     };
 
@@ -178,13 +179,13 @@
             undoBtn.onclick = () => performUndo(row);
             row.appendChild(undoBtn);
 
-            const initialParts = line.split(/\||\//).flatMap(part => {
-                const pinyinMatch = part.trim().match(/\s*\(([^)]+)\)$/);
-                if (pinyinMatch) {
-                    const textBefore = part.trim().replace(pinyinMatch[0], '');
-                    return textBefore ? [textBefore, pinyinMatch[0].trim()] : [pinyinMatch[0].trim()];
-                }
-                return [part.trim()];
+            // 🌟 ระบบ Regex ขั้นสูง: 
+            // 1. แยกด้วย | หรือ / แต่ข้ามตัวที่อยู่ข้างใน [...] หรือ (...)
+            // 2. ดึงข้อความใน [...] และ (...) ออกมาเป็นบล็อกแยกต่างหาก
+            const initialParts = line.split(/(?![^\[]*\])(?![^\(]*\))[|/]/).flatMap(part => {
+                return part.split(/(\([^)]+\)|\[[^\]]+\])/)
+                    .map(text => text.trim())
+                    .filter(text => text.length > 0);
             });
 
             initialParts.forEach(text => text && row.appendChild(createEditorBlock(text, row)));
@@ -311,10 +312,7 @@
             floatingIndicator.textContent = '✅ โหมดเลือก (แตะเพื่อกลับโหมดจัดการ)';
 
             const editorText = getEditorOutputAsText();
-            const transformedText = editorText.split('\n').map(line => 
-                line.replace(/\s*\|\s*/, ' = ')
-            ).join('\n');
-            renderSelectorView(transformedText);
+            renderSelectorView(editorText);
 
         } else {
             const selectedText = Array.from(getAll('.data-block.selected'))
